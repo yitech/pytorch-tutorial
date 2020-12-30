@@ -1,0 +1,7 @@
+.git
+.idea
+venv
+data
+main.py
+*.png
+*.jpg
