@@ -52,6 +52,7 @@ data_loader = {"train": DataLoader(train_set, shuffle=True, batch_size=batch_siz
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device on {}".format(device))
 net = Net(map_dataset.num_class)
+net = net.to(device)
 print(net)
 # img = torch.randn(64 * 64 * 3 * 2).reshape(2, 3, 64, 64)
 # print(net(img))
