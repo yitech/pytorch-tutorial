@@ -3,6 +3,8 @@ import os
 import argparse
 import configparser
 
+from datetime import datetime
+
 import numpy as np
 from sklearn.metrics import confusion_matrix
 import torch
@@ -13,9 +15,6 @@ from torch.optim import lr_scheduler
 
 from dataloader import MapDataset
 from model import Net
-
-
-from PIL import Image
 
 ABS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -55,10 +54,14 @@ data_loader = {"train": DataLoader(train_set, shuffle=True, batch_size=batch_siz
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device on {}".format(device))
 net = Net(n_class)
+
+if config["Train"]["IsRetrain"].lower() == 'true':
+    print("load model from {}".format(config["Train"]["ModelSource"]))
+    checkpoint = torch.load(os.path.join(ABS_DIR, config["Train"]["ModelSource"]))
+    net.load_state_dict(checkpoint)  # load model
+
 net = net.to(device)
 print(net)
-# img = torch.randn(64 * 64 * 3 * 2).reshape(2, 3, 64, 64)
-# print(net(img))
 loss_func = torch.nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=0.001)
 sgdr_partial = lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=0.005)
@@ -88,7 +91,6 @@ for t in range(n_epoch):
             with torch.set_grad_enabled(phase == 'train'):
                 # feed the input
                 preds = net(data)
-                # print(preds.shape)
                 # calculate the loss
                 loss = loss_func(preds, target)
                 if phase == 'train':
@@ -108,9 +110,7 @@ for t in range(n_epoch):
         epoch_acc = np.trace(running_confusion) / len(data_loader[phase].dataset)
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
         if t % save_every_epoch == 0:
-            torch.save(net.state_dict(), os.path.join(dst_dir, "model" + str(t).zfill(4) + ".pth"))
-
-
-
-
-# print(type(torchvision.models.resnet50(pretrained=True)))
+            torch.save(net.state_dict(), os.path.join(dst_dir,
+                                                      "model" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S") + ".pth")
+                       )
+torch.save(net.state_dict(), os.path.join(dst_dir, "model.pth"))
