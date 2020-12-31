@@ -79,6 +79,7 @@ for t in range(n_epoch):
             net.eval()
         # keep track of training and validation loss
         running_loss = 0.0
+        running_batch = 0
         running_confusion = np.zeros(shape=(n_class, n_class), dtype=np.float)
 
         for data, target in data_loader[phase]:
@@ -90,17 +91,18 @@ for t in range(n_epoch):
                 # print(preds.shape)
                 # calculate the loss
                 loss = loss_func(preds, target)
-                running_confusion += confusion_matrix(
-                    target.cpu().numpy(),
-                    torch.argmax(preds, dim=1).cpu().numpy(),
-                    labels=np.arange(n_class)
-                )
                 if phase == 'train':
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
             running_loss += loss.item() * data.size(0)
-            # print("item: {}. size: {}".format(loss.item(), data.size(0)))
+            running_confusion += confusion_matrix(
+                target.cpu().numpy(),
+                torch.argmax(preds, dim=1).cpu().numpy(),
+                labels=np.arange(n_class)
+            )
+            running_batch += data.size(0)
+            print("item: {}. size: {}".format(loss.item(), running_batch))
 
         epoch_loss = running_loss / len(data_loader[phase].dataset)
         epoch_acc = np.trace(running_confusion) / len(data_loader[phase].dataset)
