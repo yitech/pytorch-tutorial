@@ -35,7 +35,7 @@ for section in config.sections():
         print("{} = {}".format(key, value))
 
 # Load data
-batch_size = 32
+batch_size = int(config["Train"]["BatchSize"])
 transform = transforms.Compose([transforms.Resize((64, 64)),
                                transforms.ToTensor(),
                                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -91,8 +91,8 @@ for t in range(n_epoch):
                 # calculate the loss
                 loss = loss_func(preds, target)
                 running_confusion += confusion_matrix(
-                    target.numpy(),
-                    torch.argmax(preds, dim=1).numpy(),
+                    target.cpu().numpy(),
+                    torch.argmax(preds, dim=1).cpu().numpy(),
                     labels=np.arange(n_class)
                 )
                 if phase == 'train':
