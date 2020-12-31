@@ -105,6 +105,8 @@ for t in range(n_epoch):
         epoch_loss = running_loss / len(data_loader[phase].dataset)
         epoch_acc = np.trace(running_confusion) / len(data_loader[phase].dataset)
         print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+        if t % save_every_epoch == 0:
+            torch.save(net.state_dict(), os.path.join(dst_dir, "model" + str(t).zfill(4) + ".pth"))
 
 
 
